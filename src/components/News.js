@@ -13,14 +13,17 @@ export default class News extends Component {
     pageSize: PropTypes.number,
     category: PropTypes.string,
   };
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     //console.log("construstor runs first"); //runs first
     this.state = {
       articles: [],
       loading: false,
       page: 1,
     };
+    document.title = `${
+      this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)
+    } - NewsApp`;
   }
   //runs after render
   //ek async functions apne functions k andr wait krskta hai kuch promises k run hone ka
@@ -29,9 +32,8 @@ export default class News extends Component {
   This makes the code wait at that point until the promise is settled, 
   at which point the fulfilled value of the promise is treated as a 
   return value, or the rejected value is thrown.*/
-  async componentDidMount() {
-    // console.log("cdm runs last");
-    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=dbd17c82f4814c2f9bc31798ad56d963&page=1&pageSize=${this.props.pageSize}`;
+  async updatenews() {
+    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=dbd17c82f4814c2f9bc31798ad56d963&page=${this.state.page}&pageSize=${this.props.pageSize}`;
     this.setState({ loading: true });
     let data = await fetch(url); //returns promise
     let parseddata = await data.json();
@@ -42,46 +44,16 @@ export default class News extends Component {
       loading: false,
     });
   }
+  async componentDidMount() {
+    this.updatenews();
+  }
   handleNext = async () => {
-    if (
-      this.state.page + 1 >
-      Math.ceil(this.state.totalResults / this.props.pageSize)
-    ) {
-      // document.getElementsByClassName("nextbtn").disabled = true;
-    } else {
-      let url = `https://newsapi.org/v2/top-headlines?country=${
-        this.props.country
-      }&category=${
-        this.props.category
-      }&apiKey=dbd17c82f4814c2f9bc31798ad56d963&page=${
-        this.state.page + 1
-      }&pageSize=${this.props.pageSize}`;
-      this.setState({ loading: true });
-      let data = await fetch(url); //returns promise
-      let parseddata = await data.json();
-      this.setState({
-        page: this.state.page + 1,
-        articles: parseddata.articles,
-        loading: false,
-      });
-    }
+    this.setState({ page: this.state.page + 1 });
+    this.updatenews();
   };
   handlePrev = async () => {
-    let url = `https://newsapi.org/v2/top-headlines?country=${
-      this.props.country
-    }&category=${
-      this.props.category
-    }&apiKey=dbd17c82f4814c2f9bc31798ad56d963&page=${
-      this.state.page - 1
-    }&pageSize=${this.props.pageSize}`;
-    this.setState({ loading: true });
-    let data = await fetch(url); //returns promise
-    let parseddata = await data.json();
-    this.setState({
-      page: this.state.page - 1,
-      articles: parseddata.articles,
-      loading: false,
-    });
+    this.setState({ page: this.state.page - 1 });
+    this.updatenews();
   };
   render() {
     // console.log("render method runs second");
@@ -110,8 +82,8 @@ export default class News extends Component {
                     imageUrl={element.urlToImage}
                     newsUrl={element.url}
                     date={element.publishedAt}
-                    author = {element.author}
-                    source = {element.source.name}
+                    author={element.author}
+                    source={element.source.name}
                   />
                 </div>
               );
